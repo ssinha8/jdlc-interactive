@@ -7,6 +7,7 @@
 // ------------------------------------------------------------
 // IMAGES
 // ------------------------------------------------------------
+let movingThings = [];
 
 let mainSection;
 
@@ -93,6 +94,8 @@ function preload() {
 
 function setup() {
 
+    pixelDensity(1);
+    
     let canvas = createCanvas(
         windowWidth,
         windowHeight
@@ -101,6 +104,15 @@ function setup() {
     canvas.parent("canvas-container");
 
     imageMode(CORNER);
+
+    movingThings = [
+        new MovingThing(runningMan, "person", 0),
+        new MovingThing(biker, "person", 1),
+
+        new MovingThing(bird1, "bird", 2),
+        new MovingThing(bird2, "bird", 3),
+        new MovingThing(flock, "flock", 4)
+    ];
 
 }
 
@@ -161,45 +173,36 @@ function drawMainSection() {
     // 3. TREES
     // --------------------------------------------------------
 
-    drawTree(tree1, 4000.0);
+    drawTree(tree1, 0.0);
     drawTree(tree2, 0.8);
     drawTree(tree3, 1.6);
 
-
     // --------------------------------------------------------
-    // 4. PEOPLE
-    // --------------------------------------------------------
-
-    drawMovingPerson(runningMan, 0.0);
-    drawMovingPerson(biker, 2.0);
-
-
-    // --------------------------------------------------------
-    // 5. BIRDS
+    // 4. MOVING THINGS
     // --------------------------------------------------------
 
-    drawBird(bird1, 0.0);
-    drawBird(bird2, 2.5);
-    drawFlock();
-
+    for (let thing of movingThings) {
+        thing.update();
+        thing.display();
+    }
 
     // --------------------------------------------------------
-    // 6. INTERACTIVE AREAS
+    // 5. INTERACTIVE AREAS
     // --------------------------------------------------------
 
-    drawHotspot(
-        width * 0.10,
-        height * 0.68,
-        100,
-        "CREEK"
-    );
+    // drawHotspot(
+    //     width * 0.10,
+    //     height * 0.68,
+    //     100,
+    //     "CREEK"
+    // );
 
-    drawHotspot(
-        width * 0.55,
-        height * 0.55,
-        100,
-        "ART WALL"
-    );
+    // drawHotspot(
+    //     width * 0.55,
+    //     height * 0.55,
+    //     100,
+    //     "ART WALL"
+    // );
 
 }
 
@@ -323,116 +326,6 @@ function drawTree(img, phase) {
     );
 
     pop();
-
-}
-
-
-// ============================================================
-// PEOPLE
-// ============================================================
-
-function drawMovingPerson(img, phase) {
-
-    let scale = getSectionScale();
-
-    let drawWidth =
-        img.width * scale;
-
-    let drawHeight =
-        img.height * scale;
-
-    let baseX =
-        (width - drawWidth) / 2;
-
-    let baseY =
-        (height - drawHeight) / 2;
-
-
-    // Temporary movement
-
-    let movement =
-        sin(t * 0.5 + phase) * 20;
-
-
-    image(
-        img,
-        baseX + movement,
-        baseY,
-        drawWidth,
-        drawHeight
-    );
-
-}
-
-
-// ============================================================
-// BIRDS
-// ============================================================
-
-function drawBird(img, phase) {
-
-    let scale = getSectionScale();
-
-    let drawWidth =
-        img.width * scale;
-
-    let drawHeight =
-        img.height * scale;
-
-    let baseX =
-        (width - drawWidth) / 2;
-
-    let baseY =
-        (height - drawHeight) / 2;
-
-
-    let movement =
-        sin(t * 0.3 + phase) * 80;
-
-
-    image(
-        img,
-        baseX + movement,
-        baseY,
-        drawWidth,
-        drawHeight
-    );
-
-}
-
-
-// ------------------------------------------------------------
-// FLOCK
-// ------------------------------------------------------------
-
-function drawFlock() {
-
-    let scale = getSectionScale();
-
-    let drawWidth =
-        flock.width * scale;
-
-    let drawHeight =
-        flock.height * scale;
-
-    let baseX =
-        (width - drawWidth) / 2;
-
-    let baseY =
-        (height - drawHeight) / 2;
-
-
-    let movement =
-        sin(t * 0.2) * 100;
-
-
-    image(
-        flock,
-        baseX + movement,
-        baseY,
-        drawWidth,
-        drawHeight
-    );
 
 }
 
@@ -699,5 +592,264 @@ function windowResized() {
         windowWidth,
         windowHeight
     );
+
+}
+
+// ============================================================
+// MOVING PEOPLE / BIRDS
+// ============================================================
+
+class MovingThing {
+
+    constructor(img, type, index) {
+
+        this.img = img;
+        this.type = type;
+
+        this.index = index;
+
+        this.direction = random([-1, 1]);
+
+        this.speed = this.getSpeed();
+
+        this.x = 0;
+
+        this.y = this.getLane();
+
+        this.waiting = true;
+
+        this.nextSpawn =
+            millis() + random(1000, 7000);
+
+    }
+
+
+    // --------------------------------------------------------
+    // SPEED
+    // --------------------------------------------------------
+
+    getSpeed() {
+
+        if (this.type === "person") {
+
+            return random(0.4, 0.8);
+
+        }
+
+        if (this.type === "bird") {
+
+            return random(0.8, 1.5);
+
+        }
+
+        if (this.type === "flock") {
+
+            return random(0.5, 1.0);
+
+        }
+
+    }
+
+
+    // --------------------------------------------------------
+    // Y POSITION
+    // --------------------------------------------------------
+
+    getLane() {
+
+        if (this.type === "person") {
+
+            // Temporary.
+            // We'll tune these after seeing your section.
+
+            return height * random(
+                0.45,
+                0.70
+            );
+
+        }
+
+        if (this.type === "bird" ||
+            this.type === "flock") {
+
+            return height * random(
+                0.20,
+                0.40
+            );
+
+        }
+
+    }
+
+
+    // --------------------------------------------------------
+    // SPAWN
+    // --------------------------------------------------------
+
+    spawn() {
+
+        this.direction =
+            random([-1, 1]);
+
+        this.speed =
+            this.getSpeed();
+
+        this.y =
+            this.getLane();
+
+
+        if (this.direction === 1) {
+
+            // Enter from left
+
+            this.x =
+                -this.image.width * 0.3;
+
+        }
+
+        else {
+
+            // Enter from right
+
+            this.x =
+                width +
+                this.image.width * 0.3;
+
+        }
+
+
+        this.waiting = false;
+
+    }
+
+
+    // --------------------------------------------------------
+    // UPDATE
+    // --------------------------------------------------------
+
+    update() {
+
+        // Waiting to spawn
+
+        if (this.waiting) {
+
+            if (millis() >= this.nextSpawn) {
+
+                this.spawn();
+
+            }
+
+            return;
+
+        }
+
+
+        // Move
+
+        this.x +=
+            this.speed *
+            this.direction;
+
+
+        // Has left screen?
+
+        let margin =
+            this.image.width * 0.5;
+
+
+        if (
+            this.direction === 1 &&
+            this.x > width + margin
+        ) {
+
+            this.wait();
+
+        }
+
+
+        if (
+            this.direction === -1 &&
+            this.x < -margin
+        ) {
+
+            this.wait();
+
+        }
+
+    }
+
+
+    // --------------------------------------------------------
+    // WAIT
+    // --------------------------------------------------------
+
+    wait() {
+
+        this.waiting = true;
+
+        // Random pause before coming back
+
+        this.nextSpawn =
+            millis() +
+            random(
+                2000,
+                10000
+            );
+
+    }
+
+
+    // --------------------------------------------------------
+    // DISPLAY
+    // --------------------------------------------------------
+
+    display() {
+
+        if (this.waiting) {
+            return;
+        }
+
+
+        push();
+
+        imageMode(CENTER);
+
+
+        // Flip image when moving left
+
+        if (this.direction === -1) {
+
+            translate(
+                this.x,
+                this.y
+            );
+
+            scale(
+                -1,
+                1
+            );
+
+            image(
+                this.image,
+                0,
+                0
+            );
+
+        }
+
+        else {
+
+            image(
+                this.image,
+                this.x,
+                this.y
+            );
+
+        }
+
+
+        pop();
+
+    }
 
 }
