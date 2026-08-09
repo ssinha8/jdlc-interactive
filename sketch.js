@@ -1,22 +1,40 @@
 // ============================================================
-// JOSIE DE LA CRUZ PARK — INTERACTIVE SECTION
+// JOSIE DE LA CRUZ PARK
+// Interactive Landscape Section
 // ============================================================
 
 
 // ------------------------------------------------------------
-// GLOBAL VARIABLES
+// IMAGES
 // ------------------------------------------------------------
 
 let mainSection;
 
-// Current screen
-// "main"   = full section
-// "creek"  = creek detail
-// "art"    = art wall detail
+let runningMan;
+let biker;
+
+let tree1;
+let tree2;
+let tree3;
+
+let bird1;
+let bird2;
+let flock;
+
+let water;
+
+
+// ------------------------------------------------------------
+// SCREEN STATE
+// ------------------------------------------------------------
 
 let currentScreen = "main";
 
-// Animation timer
+
+// ------------------------------------------------------------
+// ANIMATION
+// ------------------------------------------------------------
+
 let t = 0;
 
 
@@ -27,7 +45,43 @@ let t = 0;
 function preload() {
 
     mainSection = loadImage(
-        "assets/section/main-section.png"
+        "assets/main-section.png"
+    );
+
+    runningMan = loadImage(
+        "assets/runningman.png"
+    );
+
+    biker = loadImage(
+        "assets/biker.png"
+    );
+
+    tree1 = loadImage(
+        "assets/tree1.png"
+    );
+
+    tree2 = loadImage(
+        "assets/tree2.png"
+    );
+
+    tree3 = loadImage(
+        "assets/tree3.png"
+    );
+
+    bird1 = loadImage(
+        "assets/bird1.png"
+    );
+
+    bird2 = loadImage(
+        "assets/bird2.png"
+    );
+
+    flock = loadImage(
+        "assets/flock.png"
+    );
+
+    water = loadImage(
+        "assets/water.png"
     );
 
 }
@@ -83,27 +137,66 @@ function draw() {
 }
 
 
-// ------------------------------------------------------------
+// ============================================================
 // MAIN SECTION
-// ------------------------------------------------------------
+// ============================================================
 
 function drawMainSection() {
 
-    drawFittedImage(mainSection);
+    // --------------------------------------------------------
+    // 1. STATIC BASE
+    // --------------------------------------------------------
 
-    // Temporary interaction zones
-    // We'll replace these once I see your actual section.
+    drawLayer(mainSection);
+
+
+    // --------------------------------------------------------
+    // 2. WATER
+    // --------------------------------------------------------
+
+    drawLayer(water);
+
+
+    // --------------------------------------------------------
+    // 3. TREES
+    // --------------------------------------------------------
+
+    drawTree(tree1, 4000.0);
+    drawTree(tree2, 0.8);
+    drawTree(tree3, 1.6);
+
+
+    // --------------------------------------------------------
+    // 4. PEOPLE
+    // --------------------------------------------------------
+
+    drawMovingPerson(runningMan, 0.0);
+    drawMovingPerson(biker, 2.0);
+
+
+    // --------------------------------------------------------
+    // 5. BIRDS
+    // --------------------------------------------------------
+
+    drawBird(bird1, 0.0);
+    drawBird(bird2, 2.5);
+    drawFlock();
+
+
+    // --------------------------------------------------------
+    // 6. INTERACTIVE AREAS
+    // --------------------------------------------------------
 
     drawHotspot(
-        width * 0.45,
-        height * 0.55,
-        120,
+        width * 0.10,
+        height * 0.68,
+        100,
         "CREEK"
     );
 
     drawHotspot(
-        width * 0.72,
-        height * 0.48,
+        width * 0.55,
+        height * 0.55,
         100,
         "ART WALL"
     );
@@ -111,21 +204,315 @@ function drawMainSection() {
 }
 
 
+// ============================================================
+// IMAGE FITTING
+// ============================================================
+
+function drawLayer(img) {
+
+    let scale = getSectionScale();
+
+    let drawWidth =
+        img.width * scale;
+
+    let drawHeight =
+        img.height * scale;
+
+    let x =
+        (width - drawWidth) / 2;
+
+    let y =
+        (height - drawHeight) / 2;
+
+    image(
+        img,
+        x,
+        y,
+        drawWidth,
+        drawHeight
+    );
+
+}
+
+
 // ------------------------------------------------------------
-// CREEK DETAIL
+// SCALE
 // ------------------------------------------------------------
 
-function drawCreekDetail() {
+function getSectionScale() {
 
-    background(242, 240, 233);
+    let scaleX =
+        width / mainSection.width;
 
-    // Temporary placeholder
+    let scaleY =
+        height / mainSection.height;
+
+    // Keep entire section visible
+
+    return min(scaleX, scaleY);
+
+}
+
+
+// ============================================================
+// TREE ANIMATION
+// ============================================================
+
+function drawTree(img, phase) {
+
+    let scale = getSectionScale();
+
+    let drawWidth =
+        img.width * scale;
+
+    let drawHeight =
+        img.height * scale;
+
+    let x =
+        (width - drawWidth) / 2;
+
+    let y =
+        (height - drawHeight) / 2;
+
+
+    // --------------------------------------------------------
+    // IMPORTANT:
+    //
+    // These coordinates are TEMPORARY.
+    // We'll replace them with the actual tree locations
+    // after testing your image.
+    // --------------------------------------------------------
+
+    let treeX = width * 0.50;
+    let treeY = height * 0.45;
+
+
+    // Gentle movement
+
+    let sway =
+        sin(t * 1.2 + phase) * 1.5;
+
 
     push();
 
+    // Move to tree location
+
+    translate(
+        treeX,
+        treeY
+    );
+
+    // Very subtle rotation
+
+    rotate(
+        radians(sway)
+    );
+
+    translate(
+        -treeX,
+        -treeY
+    );
+
+
+    image(
+        img,
+        x,
+        y,
+        drawWidth,
+        drawHeight
+    );
+
+    pop();
+
+}
+
+
+// ============================================================
+// PEOPLE
+// ============================================================
+
+function drawMovingPerson(img, phase) {
+
+    let scale = getSectionScale();
+
+    let drawWidth =
+        img.width * scale;
+
+    let drawHeight =
+        img.height * scale;
+
+    let baseX =
+        (width - drawWidth) / 2;
+
+    let baseY =
+        (height - drawHeight) / 2;
+
+
+    // Temporary movement
+
+    let movement =
+        sin(t * 0.5 + phase) * 20;
+
+
+    image(
+        img,
+        baseX + movement,
+        baseY,
+        drawWidth,
+        drawHeight
+    );
+
+}
+
+
+// ============================================================
+// BIRDS
+// ============================================================
+
+function drawBird(img, phase) {
+
+    let scale = getSectionScale();
+
+    let drawWidth =
+        img.width * scale;
+
+    let drawHeight =
+        img.height * scale;
+
+    let baseX =
+        (width - drawWidth) / 2;
+
+    let baseY =
+        (height - drawHeight) / 2;
+
+
+    let movement =
+        sin(t * 0.3 + phase) * 80;
+
+
+    image(
+        img,
+        baseX + movement,
+        baseY,
+        drawWidth,
+        drawHeight
+    );
+
+}
+
+
+// ------------------------------------------------------------
+// FLOCK
+// ------------------------------------------------------------
+
+function drawFlock() {
+
+    let scale = getSectionScale();
+
+    let drawWidth =
+        flock.width * scale;
+
+    let drawHeight =
+        flock.height * scale;
+
+    let baseX =
+        (width - drawWidth) / 2;
+
+    let baseY =
+        (height - drawHeight) / 2;
+
+
+    let movement =
+        sin(t * 0.2) * 100;
+
+
+    image(
+        flock,
+        baseX + movement,
+        baseY,
+        drawWidth,
+        drawHeight
+    );
+
+}
+
+
+// ============================================================
+// HOTSPOTS
+// ============================================================
+
+function drawHotspot(
+    x,
+    y,
+    size,
+    label
+) {
+
+    push();
+
+    // Very subtle circle
+
+    noFill();
+
+    stroke(
+        255,
+        255,
+        255,
+        100
+    );
+
+    strokeWeight(2);
+
+    circle(
+        x,
+        y,
+        size
+    );
+
+
+    fill(255);
+
+    noStroke();
+
+    textAlign(
+        CENTER,
+        CENTER
+    );
+
+    textSize(13);
+
+    text(
+        label,
+        x,
+        y
+    );
+
+    pop();
+
+}
+
+
+// ============================================================
+// DETAIL SCREENS
+// ============================================================
+
+function drawCreekDetail() {
+
+    background(
+        242,
+        240,
+        233
+    );
+
+
     fill(30);
-    textAlign(CENTER, CENTER);
-    textSize(24);
+
+    textAlign(
+        CENTER,
+        CENTER
+    );
+
+    textSize(28);
 
     text(
         "SAUSAL CREEK",
@@ -133,27 +520,29 @@ function drawCreekDetail() {
         height / 2
     );
 
-    pop();
-
 
     drawBackButton();
 
 }
 
 
-// ------------------------------------------------------------
-// ART DETAIL
-// ------------------------------------------------------------
-
 function drawArtDetail() {
 
-    background(242, 240, 233);
+    background(
+        242,
+        240,
+        233
+    );
 
-    push();
 
     fill(30);
-    textAlign(CENTER, CENTER);
-    textSize(24);
+
+    textAlign(
+        CENTER,
+        CENTER
+    );
+
+    textSize(28);
 
     text(
         "COMMUNITY ART",
@@ -161,54 +550,26 @@ function drawArtDetail() {
         height / 2
     );
 
-    pop();
-
 
     drawBackButton();
 
 }
 
 
-// ------------------------------------------------------------
-// HOTSPOT
-// ------------------------------------------------------------
-
-function drawHotspot(x, y, size, label) {
-
-    push();
-
-    noFill();
-
-    stroke(255, 255, 255, 120);
-    strokeWeight(2);
-
-    circle(x, y, size);
-
-    fill(255);
-    noStroke();
-
-    textAlign(CENTER, CENTER);
-    textSize(14);
-
-    text(label, x, y);
-
-    pop();
-
-}
-
-
-// ------------------------------------------------------------
+// ============================================================
 // BACK BUTTON
-// ------------------------------------------------------------
+// ============================================================
 
 function drawBackButton() {
 
     push();
 
-    fill(255, 240);
+    fill(
+        255,
+        240
+    );
 
     stroke(40);
-    strokeWeight(1);
 
     rect(
         30,
@@ -218,10 +579,16 @@ function drawBackButton() {
         5
     );
 
+
     fill(30);
+
     noStroke();
 
-    textAlign(CENTER, CENTER);
+    textAlign(
+        CENTER,
+        CENTER
+    );
+
     textSize(14);
 
     text(
@@ -235,9 +602,9 @@ function drawBackButton() {
 }
 
 
-// ------------------------------------------------------------
-// MOUSE / TOUCH INTERACTION
-// ------------------------------------------------------------
+// ============================================================
+// INPUT
+// ============================================================
 
 function mousePressed() {
 
@@ -257,25 +624,27 @@ function touchStarted() {
     );
 
     return false;
+
 }
 
 
 // ------------------------------------------------------------
-// INTERACTION LOGIC
+// INTERACTION
 // ------------------------------------------------------------
 
 function handleInteraction(x, y) {
 
     if (currentScreen === "main") {
 
-        // Creek hotspot
+        // Creek
+
         if (
             dist(
                 x,
                 y,
-                width * 0.45,
-                height * 0.55
-            ) < 60
+                width * 0.10,
+                height * 0.68
+            ) < 50
         ) {
 
             currentScreen = "creek";
@@ -283,13 +652,14 @@ function handleInteraction(x, y) {
         }
 
 
-        // Art wall hotspot
+        // Art wall
+
         else if (
             dist(
                 x,
                 y,
-                width * 0.72,
-                height * 0.48
+                width * 0.55,
+                height * 0.55
             ) < 50
         ) {
 
@@ -298,7 +668,6 @@ function handleInteraction(x, y) {
         }
 
     }
-
 
     else {
 
@@ -320,73 +689,15 @@ function handleInteraction(x, y) {
 }
 
 
-// ------------------------------------------------------------
+// ============================================================
 // RESPONSIVE CANVAS
-// ------------------------------------------------------------
+// ============================================================
 
 function windowResized() {
 
     resizeCanvas(
         windowWidth,
         windowHeight
-    );
-
-}
-
-
-// ------------------------------------------------------------
-// IMAGE FITTING
-// ------------------------------------------------------------
-
-function drawFittedImage(img) {
-
-    let imageRatio =
-        img.width / img.height;
-
-    let screenRatio =
-        width / height;
-
-
-    let drawWidth;
-    let drawHeight;
-
-
-    if (imageRatio > screenRatio) {
-
-        // Image is wider than screen
-
-        drawHeight = height;
-
-        drawWidth =
-            height * imageRatio;
-
-    }
-
-    else {
-
-        // Image is taller than screen
-
-        drawWidth = width;
-
-        drawHeight =
-            width / imageRatio;
-
-    }
-
-
-    let x =
-        (width - drawWidth) / 2;
-
-    let y =
-        (height - drawHeight) / 2;
-
-
-    image(
-        img,
-        x,
-        y,
-        drawWidth,
-        drawHeight
     );
 
 }
