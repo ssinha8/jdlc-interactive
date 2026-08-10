@@ -19,6 +19,7 @@ let tree3;
 let bird1;
 let bird2;
 let flock;
+let birds;
 
 let water;
 
@@ -99,6 +100,50 @@ function setup() {
 
     imageMode(CORNER);
     windowResized();
+
+    birds = [
+        {
+            img: bird1,
+            x: 100,
+            y: 200,
+            baseY: 200,
+            size: 20,
+            direction: 1,
+            speed: 1.0,
+            baseSpeed: 1.0,
+            active: true,
+            wait: 0,
+            phase: random(TWO_PI)
+        },
+
+        {
+            img: bird2,
+            x: 1600,
+            y: 250,
+            baseY: 250,
+            size: 20,
+            direction: -1,
+            speed: 0.9,
+            baseSpeed: 0.9,
+            active: true,
+            wait: 0,
+            phase: random(TWO_PI)
+        },
+
+        {
+            img: flock,
+            x: 500,
+            y: 180,
+            baseY: 180,
+            size: 80,
+            direction: 1,
+            speed: 0.7,
+            baseSpeed: 0.7,
+            active: true,
+            wait: 0,
+            phase: random(TWO_PI)
+        }
+    ];
 }
 
 function windowResized() {
@@ -124,6 +169,66 @@ function draw() {
     drawSwayingTree(tree1, 360, 238, 90, 0);
     drawSwayingTree(tree2, 733, 193, 130, 1.5);
     drawSwayingTree(tree3, 1595, 225, 100, 3);
+    for (let bird of birds) {
+
+        // Bird is waiting to return
+        if (!bird.active) {
+
+            bird.wait--;
+
+            // Waiting period is over
+            if (bird.wait <= 0) {
+
+                bird.active = true;
+
+                // Randomly choose a direction
+                bird.direction = random() < 0.5 ? 1 : -1;
+
+                // Randomize speed slightly
+                bird.speed = bird.baseSpeed * random(0.8, 1.2);
+
+                // Put bird outside the correct side
+                if (bird.direction === 1) {
+                    bird.x = -200;
+                } else {
+                    bird.x = 2000;
+                }
+            }
+
+        } else {
+
+            // Move bird
+            let flightSpeed = bird.img === flock ? 0.018 : 0.025;
+            let flightAmount = bird.img === flock ? 12 : 8;
+
+            bird.x += bird.speed * bird.direction;
+            bird.y = bird.baseY + sin(frameCount * flightSpeed + bird.phase) * flightAmount;
+
+            // Bird leaves screen
+            if (bird.direction === 1 && bird.x > 1800) {
+
+                bird.active = false;
+
+                // Random wait between 2–6 seconds
+                bird.wait = random(120, 360);
+            }
+
+            if (bird.direction === -1 && bird.x < -200) {
+
+                bird.active = false;
+
+                // Random wait between 2–6 seconds or longer for flock
+                let waitTime = bird.img === flock ? 2 : 1;
+
+                bird.wait = random(120 * waitTime, 360 * waitTime);
+            }
+        }
+
+        // Draw only if active
+        if (bird.active) {
+            drawBird(bird);
+        }
+    }
 }
 
 
@@ -212,6 +317,32 @@ function drawSwayingTree(tree, x, y, size, offset) {
     imageMode(CORNER);
 }
 
+function drawBird(bird) {
+
+    let width = bird.size * (bird.img.width / bird.img.height);
+
+    push();
+
+    translate(bird.x, bird.y);
+
+    imageMode(CENTER);
+
+    if (bird.direction === -1) {
+        scale(-1, 1);
+    }
+
+    image(
+        bird.img,
+        0,
+        0,
+        width,
+        bird.size
+    );
+
+    pop();
+
+    imageMode(CORNER);
+}
 
 // ============================================================
 // HOTSPOTS
