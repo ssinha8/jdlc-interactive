@@ -93,59 +93,27 @@ function preload() {
 // ------------------------------------------------------------
 
 function setup() {
-
     pixelDensity(1);
-    
-    let canvas = createCanvas(
-        windowWidth,
-        windowHeight
-    );
+
+    let canvas = createCanvas(1800, 600);
 
     canvas.parent("canvas-container");
 
     imageMode(CORNER);
-
-    movingThings = [
-        new MovingThing(runningMan, "person", 0),
-        new MovingThing(biker, "person", 1),
-
-        new MovingThing(bird1, "bird", 2),
-        new MovingThing(bird2, "bird", 3),
-        new MovingThing(flock, "flock", 4)
-    ];
-
 }
-
 
 // ------------------------------------------------------------
 // DRAW
 // ------------------------------------------------------------
 
 function draw() {
-
     background(242, 240, 233);
 
-    t += 0.01;
-
-
-    if (currentScreen === "main") {
-
-        drawMainSection();
-
-    }
-
-    else if (currentScreen === "creek") {
-
-        drawCreekDetail();
-
-    }
-
-    else if (currentScreen === "art") {
-
-        drawArtDetail();
-
-    }
-
+    drawMainSection();
+    // Draw swaying trees
+    drawSwayingTree(tree1, 360, 238, 90, 0);
+    drawSwayingTree(tree2, 733, 193, 130, 1.5);
+    drawSwayingTree(tree3, 1595, 225, 100, 3);
 }
 
 
@@ -154,56 +122,7 @@ function draw() {
 // ============================================================
 
 function drawMainSection() {
-
-    // --------------------------------------------------------
-    // 1. STATIC BASE
-    // --------------------------------------------------------
-
-    drawLayer(mainSection);
-
-
-    // --------------------------------------------------------
-    // 2. WATER
-    // --------------------------------------------------------
-
-    drawLayer(water);
-
-
-    // --------------------------------------------------------
-    // 3. TREES
-    // --------------------------------------------------------
-
-    drawTree(tree1, 0.0);
-    drawTree(tree2, 0.8);
-    drawTree(tree3, 1.6);
-
-    // --------------------------------------------------------
-    // 4. MOVING THINGS
-    // --------------------------------------------------------
-
-    for (let thing of movingThings) {
-        thing.update();
-        thing.display();
-    }
-
-    // --------------------------------------------------------
-    // 5. INTERACTIVE AREAS
-    // --------------------------------------------------------
-
-    // drawHotspot(
-    //     width * 0.10,
-    //     height * 0.68,
-    //     100,
-    //     "CREEK"
-    // );
-
-    // drawHotspot(
-    //     width * 0.55,
-    //     height * 0.55,
-    //     100,
-    //     "ART WALL"
-    // );
-
+    image(mainSection, 0, 0, 1800, 600);
 }
 
 
@@ -261,72 +180,26 @@ function getSectionScale() {
 // TREE ANIMATION
 // ============================================================
 
-function drawTree(img, phase) {
-
-    let scale = getSectionScale();
-
-    let drawWidth =
-        img.width * scale;
-
-    let drawHeight =
-        img.height * scale;
-
-    let x =
-        (width - drawWidth) / 2;
-
-    let y =
-        (height - drawHeight) / 2;
-
-
-    // --------------------------------------------------------
-    // IMPORTANT:
-    //
-    // These coordinates are TEMPORARY.
-    // We'll replace them with the actual tree locations
-    // after testing your image.
-    // --------------------------------------------------------
-
-    let treeX = width * 0.50;
-    let treeY = height * 0.45;
-
-
-    // Gentle movement
-
+function drawSwayingTree(tree, x, y, size, offset) {
     let sway =
-        sin(t * 1.2 + phase) * 1.5;
-
-
+        sin(frameCount * 0.02 + offset) * 1.5 +
+        sin(frameCount * 0.037 + offset * 2) * 0.5;
     push();
+    
+    let aspect = tree.width / tree.height;
+    let h = size;
+    let w = h * aspect;
 
-    // Move to tree location
+    translate(x + w / 2, y + h);
 
-    translate(
-        treeX,
-        treeY
-    );
+    rotate(radians(sway));
 
-    // Very subtle rotation
-
-    rotate(
-        radians(sway)
-    );
-
-    translate(
-        -treeX,
-        -treeY
-    );
-
-
-    image(
-        img,
-        x,
-        y,
-        drawWidth,
-        drawHeight
-    );
+    imageMode(CENTER);
+    image(tree, 0, -h / 2, w, h);
 
     pop();
 
+    imageMode(CORNER);
 }
 
 
