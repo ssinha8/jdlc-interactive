@@ -9,8 +9,9 @@
 // ------------------------------------------------------------
 let mainSection;
 
-let runningMan;
+let runningman;
 let biker;
+let people;
 
 let tree1;
 let tree2;
@@ -22,6 +23,11 @@ let flock;
 let birds;
 
 let water;
+let waterData = {
+    x: 147,
+    y: 368,
+    size: 38
+};
 
 
 // ------------------------------------------------------------
@@ -48,7 +54,7 @@ function preload() {
         "assets/main-section.png"
     );
 
-    runningMan = loadImage(
+    runningman = loadImage(
         "assets/runningman.png"
     );
 
@@ -101,6 +107,48 @@ function setup() {
     imageMode(CORNER);
     windowResized();
 
+    people = [
+        /*
+        {
+            img: runningman,
+            x: 1600,
+            y: 288,
+            size: 40,
+            direction: -1,
+            speed: 0.8,
+            active: true,
+            wait: 0,
+            startX: 1400,
+            endX: 500,
+            baseY: 288,
+
+            bridgeStart: 1200,
+            bridgeEnd: 1000,
+            bridgeHeight: 40,
+        }, */
+
+        {
+            img: biker,
+            x: 1800,
+            y: 290,
+            size: 30,
+            direction: -1,
+            speed: 1.2,
+            active: true,
+            wait: 0,
+            startX: 1800,
+            endX: 0,
+            baseY: 290,
+
+            bridgeStart: 380,
+            bridgeEnd: 100,
+            bridgeHeight: 10,
+
+            rightSlopeStart: 1800,
+            rightSlopeEnd: 900,
+            rightSlopeHeight: 10,
+        }
+    ];
     birds = [
         {
             img: bird1,
@@ -169,6 +217,7 @@ function draw() {
     drawSwayingTree(tree1, 360, 238, 90, 0);
     drawSwayingTree(tree2, 733, 193, 130, 1.5);
     drawSwayingTree(tree3, 1595, 225, 100, 3);
+
     for (let bird of birds) {
 
         // Bird is waiting to return
@@ -229,6 +278,86 @@ function draw() {
             drawBird(bird);
         }
     }
+
+    for (let person of people) {
+
+        if (!person.active) {
+
+            person.wait--;
+
+            if (person.wait <= 0) {
+
+                person.active = true;
+
+                // Randomly choose walking direction
+                person.direction = random() < 0.5 ? 1 : -1;
+
+                // Start at the appropriate end of the path
+                if (person.direction === -1) {
+                    person.x = person.startX;
+                } else {
+                    person.x = person.endX;
+                }
+            }
+
+        } else {
+
+            person.x += person.speed * person.direction;
+
+           // Right-side gradual upslope
+            if (
+                person.x <= person.rightSlopeStart &&
+                person.x >= person.rightSlopeEnd
+            ) {
+
+                let t =
+                    (person.rightSlopeStart - person.x) /
+                    (person.rightSlopeStart - person.rightSlopeEnd);
+
+                person.y =
+                    person.baseY +
+                    person.rightSlopeHeight * (1 - t);
+
+            }
+
+            // Bridge
+            else if (
+                person.x <= person.bridgeStart &&
+                person.x >= person.bridgeEnd
+            ) {
+
+                let t =
+                    (person.bridgeStart - person.x) /
+                    (person.bridgeStart - person.bridgeEnd);
+
+                let bridgeOffset =
+                    4 * person.bridgeHeight * t * (1 - t);
+
+                person.y =
+                    person.baseY - bridgeOffset;
+
+            }
+
+            // Normal flat section
+            else {
+
+                person.y = person.baseY;
+
+            }
+
+            if (
+                (person.direction === -1 && person.x <= person.endX) ||
+                (person.direction === 1 && person.x >= person.startX)
+            ) {
+
+                person.active = false;
+                person.wait = random(180, 480);
+            }
+
+            drawPerson(person);
+        }
+    }
+    drawWater();
 }
 
 
@@ -342,6 +471,54 @@ function drawBird(bird) {
     pop();
 
     imageMode(CORNER);
+}
+
+function drawPerson(person) {
+
+    let width =
+        person.size *
+        (person.img.width / person.img.height);
+
+    push();
+
+    // Move to center of person
+    translate(
+        person.x + width / 2,
+        person.y + person.size / 2
+    );
+
+    // Flip when moving right
+    if (person.direction === 1) {
+        scale(-1, 1);
+    }
+
+    imageMode(CENTER);
+
+    image(
+        person.img,
+        0,
+        0,
+        width,
+        person.size
+    );
+
+    pop();
+
+    imageMode(CORNER);
+}
+
+function drawWater() {
+    let width =
+        waterData.size *
+        (water.width / water.height);
+
+    image(
+        water,
+        waterData.x,
+        waterData.y,
+        width,
+        waterData.size
+    );
 }
 
 // ============================================================
