@@ -98,8 +98,20 @@ function setup() {
     canvas.parent("canvas-container");
 
     imageMode(CORNER);
+    windowResized();
 }
 
+function windowResized() {
+  const scale = Math.min(
+    windowWidth / 1800,
+    windowHeight / 600
+  );
+
+  const canvas = document.querySelector("canvas");
+
+  canvas.style.width = `${1800 * scale}px`;
+  canvas.style.height = `${600 * scale}px`;
+}
 // ------------------------------------------------------------
 // DRAW
 // ------------------------------------------------------------
