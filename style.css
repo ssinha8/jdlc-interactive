@@ -19,9 +19,11 @@ body {
 
 canvas {
   display: block;
-  width: min(100vw, 1800px);
+
+  width: min(100vw, 300vh);
   height: auto;
-  max-height: 100vh;
+
+  max-width: 1800px;
 }
 
 #rotate-message {
