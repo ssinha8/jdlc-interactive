@@ -986,11 +986,16 @@ function mousePressed() {
 
 function touchStarted() {
 
-    handleInteraction(
-        mouseX,
-        mouseY
-    );
+    if (
+        mouseX >= waterX &&
+        mouseX <= waterX + waterWidth &&
+        mouseY >= waterY &&
+        mouseY <= waterY + waterHeight
+    ) {
+
+        isFlooded = !isFlooded;
+
+    }
 
     return false;
-
 }
