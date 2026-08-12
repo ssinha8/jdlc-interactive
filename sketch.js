@@ -12,6 +12,7 @@ let mainSection;
 let runningman;
 let biker;
 let people;
+let interactivePeople = [];
 
 let tree1;
 let tree2;
@@ -23,11 +24,56 @@ let flock;
 let birds;
 
 let water;
-let waterData = {
-    x: 147,
-    y: 368,
-    size: 38
-};
+let waterX = 150;
+let waterY = 385;
+
+let waterWidth = 60;
+let waterHeight = 20;
+let waterBottomX = 0.35;
+
+
+let waterTime = 0;
+let waterLines = [
+    // x,    y,     width
+    { x: 0.18, y: 0.18, width: 0.2 },
+    { x: 0.98, y: 0.20, width: 0.20 },
+
+    { x: 0.50, y: 0.32, width: 0.28 },
+
+    { x: 0.30, y: 0.48, width: 0.20 },
+    { x: 0.82, y: 0.52, width: 0.22 },
+
+    { x: 0.18, y: 0.66, width: 0.18 },
+    { x: 0.60, y: 0.66, width: 0.28 },
+    { x: 0.38, y: 0.80, width: 0.20 }
+
+];
+
+let isFlooded = false;
+let floodAmount = 0; // 0 = no flood, 1 = full flood
+let floodHeight = waterHeight * 2;
+let floodVertices = [
+
+    { x: 0, y: 0 },
+    { x: -0.08, y: -1.2 },
+    { x: 2.7, y: -1.2 },
+    { x: 2.6, y: -0.8 },
+    { x: 2.5, y: -0.5 },
+    { x: 2.4, y: -0.4 },
+    { x: 1.5, y: -0.08 },
+    { x: 1.35, y: 0.1 },
+    { x: 1.2, y: 0.4 },
+    { x: 1.0, y: 0.73 },
+    { x: 0.85, y: 0.86 },
+    { x: 0.7, y: 0.95 },
+    { x: 0.5, y: 1 },
+    { x: 0.3, y: 1 },
+    { x: 0.18, y: 0.95 },
+    { x: 0.1, y: 0.8 },
+
+];
+
+let rightCurveStart = 0.35;
 
 
 // ------------------------------------------------------------
@@ -149,6 +195,27 @@ function setup() {
             rightSlopeHeight: 10,
         }
     ];
+    interactivePeople = [
+
+        {
+            x: 900,
+            y: 450,
+            state: "creek"
+        },
+
+        {
+            x: 1050,
+            y: 450,
+            state: "creek"
+        },
+
+        {
+            x: 1200,
+            y: 450,
+            state: "creek"
+        }
+
+    ];
     birds = [
         {
             img: bird1,
@@ -195,15 +262,15 @@ function setup() {
 }
 
 function windowResized() {
-  const scale = Math.min(
-    windowWidth / 1800,
-    windowHeight / 600
-  );
+    const scale = Math.min(
+        windowWidth / 1800,
+        windowHeight / 600
+    );
 
-  const canvas = document.querySelector("canvas");
+    const canvas = document.querySelector("canvas");
 
-  canvas.style.width = `${1800 * scale}px`;
-  canvas.style.height = `${600 * scale}px`;
+    canvas.style.width = `${1800 * scale}px`;
+    canvas.style.height = `${600 * scale}px`;
 }
 // ------------------------------------------------------------
 // DRAW
@@ -213,6 +280,26 @@ function draw() {
     background(242, 240, 233);
 
     drawMainSection();
+
+
+    if (isFlooded) {
+
+        floodAmount = min(
+            floodAmount + 0.01,
+            1
+        );
+
+    } else {
+
+        floodAmount = max(
+            floodAmount - 0.01,
+            0
+        );
+    }
+
+    waterTime += 0.02;
+    drawFloodplain();
+    drawWater();
     // Draw swaying trees
     drawSwayingTree(tree1, 360, 238, 90, 0);
     drawSwayingTree(tree2, 733, 193, 130, 1.5);
@@ -304,7 +391,7 @@ function draw() {
 
             person.x += person.speed * person.direction;
 
-           // Right-side gradual upslope
+            // Right-side gradual upslope
             if (
                 person.x <= person.rightSlopeStart &&
                 person.x >= person.rightSlopeEnd
@@ -357,7 +444,7 @@ function draw() {
             drawPerson(person);
         }
     }
-    drawWater();
+
 }
 
 
@@ -429,7 +516,7 @@ function drawSwayingTree(tree, x, y, size, offset) {
         sin(frameCount * 0.02 + offset) * 1.5 +
         sin(frameCount * 0.037 + offset * 2) * 0.5;
     push();
-    
+
     let aspect = tree.width / tree.height;
     let h = size;
     let w = h * aspect;
@@ -508,17 +595,209 @@ function drawPerson(person) {
 }
 
 function drawWater() {
-    let width =
-        waterData.size *
-        (water.width / water.height);
 
-    image(
-        water,
-        waterData.x,
-        waterData.y,
-        width,
-        waterData.size
+    push();
+
+    // -------------------------
+    // WATER BODY
+    // -------------------------
+
+    noStroke();
+
+    fill(100, 160, 200);
+
+    beginShape();
+
+    // LEFT BANK
+    vertex(
+        waterX,
+        waterY +
+        sin(waterTime * 1.2) *
+        waterHeight * 0.015
     );
+
+    // LEFT CURVE
+    for (let i = 0; i <= 20; i++) {
+
+        let t = i / 20;
+
+        let x =
+            waterX +
+            (rightCurveStart * waterWidth) * t;
+
+        let y =
+            waterY +
+            waterHeight *
+            (1 - pow(1 - t, 3));
+
+        vertex(x, y);
+    }
+
+    // FLAT BOTTOM
+    let bottomX =
+        waterX + rightCurveStart * waterWidth;
+
+    let bottomEndX =
+        bottomX +
+        (waterWidth * (1 - rightCurveStart) * 0.8);
+
+    vertex(
+        bottomX,
+        waterY + waterHeight
+    );
+
+    vertex(
+        bottomEndX,
+        waterY + waterHeight * 0.9
+    );
+
+    // RIGHT BANK
+    vertex(
+        bottomEndX + waterWidth * 0.22,
+        waterY + waterHeight * 0.65
+    );
+
+    vertex(
+        bottomEndX + waterWidth * 0.3,
+        waterY + waterHeight * 0.45
+    );
+
+    vertex(
+        bottomEndX + waterWidth * 0.4,
+        waterY + waterHeight * 0.25
+    );
+
+    vertex(
+        bottomEndX + waterWidth * 0.5,
+        waterY +
+        sin(waterTime * 1.2 + 2) *
+        waterHeight * 0.015
+    );
+
+    endShape(CLOSE);
+
+
+    // -------------------------
+    // ANIMATED WATER LINES
+    // -------------------------
+
+    noFill();
+    stroke(255, 100);
+    strokeWeight(waterHeight * 0.025);
+
+    for (let line of waterLines) {
+
+        let y =
+            waterY +
+            waterHeight * line.y;
+
+        let startX =
+            waterX +
+            waterWidth * line.x;
+
+        let lineWidth =
+            waterWidth * line.width;
+
+        let endX =
+            startX + lineWidth;
+
+        beginShape();
+
+        for (
+            let x = startX;
+            x <= endX;
+            x += waterWidth * 0.025
+        ) {
+
+            let wave =
+                sin(
+                    x * 0.025 +
+                    waterTime * 1.5 +
+                    line.y * 10
+                ) *
+                waterHeight * 0.04;
+
+            vertex(
+                x,
+                y + wave
+            );
+        }
+
+        endShape();
+    }
+}
+
+function drawFloodplain() {
+
+    if (floodAmount <= 0) return;
+
+    noStroke();
+
+    fill(100, 160, 200);
+
+    // Current flood level
+    let floodTopY =
+        waterY +
+        waterHeight -
+        floodHeight * floodAmount;
+
+    beginShape();
+
+    for (let i = 0; i < floodVertices.length; i++) {
+
+        let current = floodVertices[i];
+
+        let next =
+            floodVertices[
+            (i + 1) % floodVertices.length
+            ];
+
+        let x1 =
+            waterX +
+            current.x * waterWidth;
+
+        let y1 =
+            waterY +
+            current.y * waterHeight;
+
+        let x2 =
+            waterX +
+            next.x * waterWidth;
+
+        let y2 =
+            waterY +
+            next.y * waterHeight;
+
+        let inside1 =
+            y1 >= floodTopY;
+
+        let inside2 =
+            y2 >= floodTopY;
+
+        // Both points are below the flood line
+        if (inside1) {
+            vertex(x1, y1);
+        }
+
+        // Edge crosses the flood line
+        if (inside1 !== inside2) {
+
+            let t =
+                (floodTopY - y1) /
+                (y2 - y1);
+
+            let intersectionX =
+                x1 +
+                (x2 - x1) * t;
+
+            vertex(
+                intersectionX,
+                floodTopY
+            );
+        }
+    }
+
+    endShape(CLOSE);
 }
 
 // ============================================================
@@ -692,11 +971,16 @@ function drawBackButton() {
 
 function mousePressed() {
 
-    handleInteraction(
-        mouseX,
-        mouseY
-    );
+    if (
+        mouseX >= waterX &&
+        mouseX <= waterX + waterWidth &&
+        mouseY >= waterY &&
+        mouseY <= waterY + waterHeight
+    ) {
 
+        isFlooded = !isFlooded;
+
+    }
 }
 
 
@@ -708,66 +992,5 @@ function touchStarted() {
     );
 
     return false;
-
-}
-
-
-// ------------------------------------------------------------
-// INTERACTION
-// ------------------------------------------------------------
-
-function handleInteraction(x, y) {
-
-    if (currentScreen === "main") {
-
-        // Creek
-
-        if (
-            dist(
-                x,
-                y,
-                width * 0.10,
-                height * 0.68
-            ) < 50
-        ) {
-
-            currentScreen = "creek";
-
-        }
-
-
-        // Art wall
-
-        else if (
-            dist(
-                x,
-                y,
-                width * 0.55,
-                height * 0.55
-            ) < 50
-        ) {
-
-            currentScreen = "art";
-
-        }
-
-    }
-
-    else {
-
-        // Back button
-
-        if (
-            x > 30 &&
-            x < 130 &&
-            y > 30 &&
-            y < 70
-        ) {
-
-            currentScreen = "main";
-
-        }
-
-    }
 
 }
